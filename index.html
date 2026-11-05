@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ONE SHOT 건배사</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap">
+<style>
+/* Topic Roulette와 같은 클레이모피즘: 파스텔 그라데이션 바탕 위에 볼록한 카드, 입력칸은 오목한 홈 */
+:root {
+  --bg: linear-gradient(160deg, #fde8dc 0%, #f8dbe8 35%, #e4dcf6 70%, #d6e6f7 100%);
+  --bg-solid: #f3e2ee;
+  --surface: #fbf8f6; --ink: #3a3550; --muted: #8a84a0;
+  --shade: 120, 100, 170;   /* 그림자 색 (rgb) */
+  --hi: rgba(255, 255, 255, .95);
+  --accent: linear-gradient(180deg, #a99cf2, #7f8ff0);
+  --accent-solid: #8a8ef0; --accent-text: #fff;
+  --pick-ink: #3a3550;
+  --head: #5f56d6;        /* n행시 첫 글자 */
+  --peach: #f6cfa3; --peach-ink: #6b4a22;
+  --danger: #c4455a;
+  --liq-red: #e0364c;     /* 잔 속 술 색 */
+  --liq-yellow: #f5c63a;
+  --liq-green: #4fbf6a;
+  --liq-blue: #4a8ef0;
+  --liq-white: #ffffff;
+  --lime: #a6d84a;
+  --font: "Nunito", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  /* 클레이 질감: 바깥 그림자 + 아래쪽 안쪽 음영 + 위쪽 하이라이트 */
+  --clay: 0 14px 28px -10px rgba(var(--shade), .38), inset 0 -5px 10px rgba(var(--shade), .14), inset 0 5px 8px var(--hi);
+  --clay-pressed: 0 4px 10px -4px rgba(var(--shade), .4), inset 0 -2px 6px rgba(var(--shade), .14), inset 0 4px 8px var(--hi);
+  --clay-inset: inset 0 6px 14px rgba(var(--shade), .22), inset 0 -4px 8px var(--hi);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: linear-gradient(160deg, #2a2338 0%, #2b2540 50%, #1f2a3c 100%); --bg-solid: #29243a;
+  --surface: #3a3350; --ink: #f1edfb; --muted: #b3abcc;
+  --shade: 5, 0, 20; --hi: rgba(255, 255, 255, .12); --head: #b8b0ff;
+  --peach: #5a4636; --peach-ink: #f6cfa3; --danger: #ff8fa0;
+  --liq-red: #ff5a6e; --liq-yellow: #ffd54a; --liq-green: #5fd07a; --liq-blue: #5b9dff; --liq-white: #f1f1ea; --lime: #b5e05a;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: linear-gradient(160deg, #2a2338 0%, #2b2540 50%, #1f2a3c 100%); --bg-solid: #29243a;
+  --surface: #3a3350; --ink: #f1edfb; --muted: #b3abcc;
+  --shade: 5, 0, 20; --hi: rgba(255, 255, 255, .12); --head: #b8b0ff;
+  --peach: #5a4636; --peach-ink: #f6cfa3; --danger: #ff8fa0;
+  --liq-red: #ff5a6e; --liq-yellow: #ffd54a; --liq-green: #5fd07a; --liq-blue: #5b9dff; --liq-white: #f1f1ea; --lime: #b5e05a;
+  color-scheme: dark; }
+
+/* 기다리는 동안 잔 12종 중 하나가 랜덤 술 색으로 0.5초마다 바뀐다 */
+.loader { display: flex; justify-content: center; padding-block: 6px; }
+.loader svg { width: 64px; height: 80px; color: var(--ink); }
+@media (prefers-reduced-motion: no-preference) {
+  .loader svg:not([hidden]) { animation: clink .5s ease-out; }
+  @keyframes clink { 0% { transform: translateY(8px) rotate(-8deg); opacity: .3; } 60% { transform: translateY(-2px) rotate(3deg); opacity: 1; } 100% { transform: none; } }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; }
+html { min-height: 100%; background: var(--bg-solid); }
+body { min-height: 100vh; background: var(--bg) fixed; color: var(--ink); font: 400 16px/1.5 var(--font); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 22px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 18px; }
+
+header { display: flex; align-items: center; gap: 16px; }
+.logo { width: 72px; height: 72px; border-radius: 24px; flex: none; display: grid; place-items: center; background: var(--accent); box-shadow: var(--clay); }
+.logo svg { width: 46px; filter: drop-shadow(0 3px 4px rgba(60, 40, 120, .3)); }
+h1 { font-size: 1.95rem; line-height: 1.15; font-weight: 900; margin: 0; text-wrap: balance; }
+h1 em { font-style: normal; background: var(--accent); -webkit-background-clip: text; background-clip: text; color: transparent; }
+header p { margin: 4px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.3; word-break: keep-all; }
+
+.panel { background: var(--surface); border-radius: 32px; padding: 20px 18px; box-shadow: var(--clay); display: flex; flex-direction: column; gap: 18px; }
+.field { display: flex; flex-direction: column; gap: 8px; border: 0; padding: 0; margin: 0; min-width: 0; }
+.field > label, .field > legend { font-weight: 800; font-size: .95rem; padding: 0; word-break: keep-all; }
+/* 질문마다 앞에 Q1, Q2… 배지 */
+.panel { counter-reset: q; }
+.field > label::before, .field > legend::before { counter-increment: q; content: "Q" counter(q);
+  display: inline-grid; place-items: center; min-width: 34px; height: 24px; padding: 0 9px; margin-right: 8px; vertical-align: 1px;
+  border-radius: 999px; background: var(--accent); color: var(--accent-text); font-size: .76rem; font-weight: 900; letter-spacing: .02em;
+  box-shadow: var(--clay); text-shadow: 0 1px 2px rgba(60, 40, 120, .3); }
+.hint { color: var(--muted); font-size: .8rem; font-weight: 600; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+textarea { resize: vertical; min-height: 4.6em; }
+input[type="text"], textarea { font: inherit; font-weight: 600; padding: 12px 14px; border: 0; border-radius: 18px; background: var(--surface); color: var(--ink); width: 100%; box-shadow: var(--clay-inset); }
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; font-weight: 400; }
+input[type="text"]:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent-solid); outline-offset: 2px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px 6px; padding-block: 2px; }
+.chips input { position: absolute; opacity: 0; pointer-events: none; }
+.chips label { --tint: #c9c0f5; cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px 6px 8px; border-radius: 999px; font-size: .85rem; font-weight: 600; background: var(--surface); box-shadow: var(--clay);
+  transition: transform .12s, box-shadow .12s; }
+.chips label::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--tint); box-shadow: inset 0 -1px 2px rgba(0,0,0,.15); }
+.chips label:nth-of-type(2) { --tint: #f7b9c8; }
+.chips label:nth-of-type(3) { --tint: #a6dcc4; }
+.chips label:nth-of-type(4) { --tint: #f6cfa3; }
+.chips label:nth-of-type(5) { --tint: #b7c9f5; }
+.chips label:nth-of-type(6) { --tint: #9fd8dd; }
+.chips label:nth-of-type(7) { --tint: #d8b9f2; }
+.chips label:nth-of-type(8) { --tint: #f3d98f; }
+.chips input:checked + label { background: var(--tint); color: var(--pick-ink); transform: translateY(-2px); font-weight: 800; }
+.chips input:checked + label::before { background: #fff; }
+.chips input:focus-visible + label { outline: 2px solid var(--accent-solid); outline-offset: 2px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+button { font: inherit; cursor: pointer; border: 0; color: var(--ink); background: var(--surface); border-radius: 18px; padding: 12px 16px; font-weight: 700; word-break: keep-all; box-shadow: var(--clay); transition: transform .12s, box-shadow .12s; }
+button:active:not(:disabled) { transform: translateY(3px); box-shadow: var(--clay-pressed); }
+button:focus-visible { outline: 2px solid var(--accent-solid); outline-offset: 2px; }
+button:disabled { cursor: wait; color: var(--muted); background: var(--surface); text-shadow: none; box-shadow: var(--clay-inset); }
+.primary { flex: 1 1 220px; border-radius: 24px; padding: 16px; font-size: 1.1rem; font-weight: 800; letter-spacing: .02em;
+  background: var(--accent); color: var(--accent-text); text-shadow: 0 1px 2px rgba(60, 40, 120, .3); }
+.quick { flex: 1 1 160px; border-radius: 24px; background: var(--peach); color: var(--peach-ink); font-weight: 800; }
+
+.status { font-size: .88rem; color: var(--muted); min-height: 1.4em; margin: 0; text-align: center; }
+.status.err { color: var(--danger); }
+
+.results-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-inline: 4px; }
+.results-head h2 { margin: 0; font-size: 1.05rem; font-weight: 800; }
+.tag { padding: 5px 12px; border-radius: 999px; font-size: .78rem; font-weight: 800; background: #c9c0f5; color: var(--pick-ink); box-shadow: var(--clay); }
+.tag.ex { background: var(--peach); color: var(--peach-ink); }
+#more { border-radius: 999px; padding: 6px 14px; font-size: .82rem; }
+
+#list { display: flex; flex-direction: column; gap: 16px; }
+.card { background: var(--surface); border-radius: 28px; padding: 18px; box-shadow: var(--clay); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.card-title { display: inline-block; padding: 7px 18px; border-radius: 999px; font-size: 1.3rem; font-weight: 900; line-height: 1.2;
+  background: var(--tint, #c9c0f5); color: var(--pick-ink); box-shadow: var(--clay); }
+.card:nth-child(3n+2) { --tint: #f7b9c8; }
+.card:nth-child(3n) { --tint: #a6dcc4; }
+.intro { margin: 0; color: var(--muted); }
+.acro { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: baseline; margin: 0; }
+.acro dt { font-size: 1.7rem; font-weight: 900; line-height: 1.15; color: var(--head); text-shadow: 0 2px 4px rgba(var(--shade), .25); }
+.acro dd { margin: 0; font-size: 1.1rem; font-weight: 800; min-width: 0; }
+.speech { margin: 0; font-size: 1.02rem; white-space: pre-wrap; }
+.call { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 12px 14px; border-radius: 18px; background: var(--surface); box-shadow: var(--clay-inset); font-size: .95rem; }
+.call b { color: var(--accent-solid); font-weight: 900; margin-right: 4px; }
+.card button { border-radius: 999px; padding: 6px 14px; font-size: .85rem; }
+.empty { color: var(--muted); text-align: center; padding: 18px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .card.new { animation: pop .35s cubic-bezier(.2, 1.4, .4, 1) both; }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M15.6 22h16.8l-1.6 16H17.2z" fill="#fff"/><path d="M14 10h20l-3 28H17z" fill="rgba(255,255,255,.2)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg></div>
+    <div>
+    <h1><em>ONE SHOT</em> 건배사</h1>
+    <p>갑자기 건배사가 필요하다면, 저만 믿으세요!</p>
+    </div>
+  </header>
+
+  <form class="panel" id="form">
+    <div class="row2">
+      <div class="field">
+        <label for="acro">n행시로 만들 단어 <span class="hint">(선택)</span></label>
+        <input type="text" id="acro" maxlength="8" placeholder="예: 김부장, 송년회, 화이팅" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="kw">꼭 넣을 키워드 <span class="hint">(쉼표로 구분)</span></label>
+        <input type="text" id="kw" maxlength="60" placeholder="예: 신제품 출시, 박대리 승진" autocomplete="off">
+      </div>
+    </div>
+
+    <fieldset class="field">
+      <legend>어떤 자리인가요?</legend>
+      <div class="chips" id="place"></div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>어떤 느낌으로?</legend>
+      <div class="chips" id="tone"></div>
+    </fieldset>
+
+    <div class="field">
+      <label for="ctx">어떤 모임이고, 무슨 말을 하고 싶나요? <span class="hint">(선택, 자세할수록 잘 나와요)</span></label>
+      <textarea id="ctx" maxlength="300" rows="3" placeholder="예: 영업팀 3분기 목표 달성 기념 회식이고, 고생한 팀원들에게 고맙다는 말과 4분기도 잘해 보자는 다짐을 담고 싶다."></textarea>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="primary" id="go">맞춤 건배사 만들기</button>
+      <button type="button" class="quick" id="rush">급해요, 아무거나 하나!</button>
+    </div>
+    <div class="loader" id="loader" hidden aria-hidden="true"></div>
+    <p class="status" id="status" role="status"></p>
+  </form>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div class="results-head">
+      <h2 id="resTitle">이 자리에 어울리는 단골 건배사</h2>
+      <span style="display:flex;gap:8px;align-items:center">
+        <span class="tag" id="resTag" hidden></span>
+        <button type="button" id="more" style="padding:6px 11px;font-size:.85rem">다른 단골 추천</button>
+      </span>
+    </div>
+    <div id="list"></div>
+  </section>
+</div>
+
+<script src="toast-core.js"></script>
+<script>
+
+
+// 단골 건배사. p: 어울리는 자리, t: 느낌. AI 연결이 없을 때도 이 목록으로 추천한다.
+const CLASSICS = [
+  { w: "진달래", l: ["진하고", "달콤한", "래일을 위하여"], p: ["*"], t: ["품격 있게", "감동적으로"] },
+  { w: "청바지", l: ["청춘은", "바로", "지금부터"], p: ["동창회·친구", "MT·동아리", "회사 회식", "송년·신년회"], t: ["파이팅 넘치게", "짧고 굵게"] },
+  { w: "당나귀", l: ["당신과", "나의", "귀한 만남을 위하여"], p: ["동창회·친구", "연인·부부", "거래처·접대"], t: ["감동적으로", "품격 있게"] },
+  { w: "나가자", l: ["나라와", "가정과", "자신의 발전을 위하여"], p: ["회사 회식", "송년·신년회"], t: ["품격 있게", "파이팅 넘치게"] },
+  { w: "변사또", l: ["변함없는 마음으로", "사귀자", "또 만나자"], p: ["동창회·친구", "MT·동아리"], t: ["웃기게", "아재개그"] },
+  { w: "재건축", l: ["재미있고", "건강하게", "축복받으며 살자"], p: ["가족 모임", "송년·신년회", "축하 자리"], t: ["감동적으로", "품격 있게"] },
+  { w: "오징어", l: ["오래도록", "징그럽게", "어울리자"], p: ["동창회·친구", "MT·동아리", "회사 회식"], t: ["웃기게", "아재개그"] },
+  { w: "소화제", l: ["소통과", "화합이", "제일이다"], p: ["회사 회식", "거래처·접대"], t: ["품격 있게", "짧고 굵게"] },
+  { w: "오바마", l: ["오직", "바라는 대로", "마음먹은 대로"], p: ["송년·신년회", "축하 자리", "MT·동아리"], t: ["파이팅 넘치게", "웃기게"] },
+  { w: "사우나", l: ["사랑과", "우정을", "나누자"], p: ["동창회·친구", "가족 모임", "연인·부부"], t: ["감동적으로"] },
+  { w: "마당발", l: ["마주 앉은", "당신의", "발전을 위하여"], p: ["거래처·접대", "회사 회식"], t: ["품격 있게"] },
+  { w: "우하하", l: ["우리는", "하늘 아래", "하나다"], p: ["MT·동아리", "회사 회식", "동창회·친구"], t: ["파이팅 넘치게", "웃기게"] },
+  { w: "원더풀", l: ["원하는 대로", "더 많이", "풀리자"], p: ["송년·신년회", "축하 자리", "회사 회식"], t: ["파이팅 넘치게", "짧고 굵게"] },
+  { w: "해당화", l: ["해가 갈수록", "당당하게", "화목하게"], p: ["가족 모임", "송년·신년회", "연인·부부"], t: ["감동적으로", "품격 있게"] },
+  { w: "당신멋져", l: ["당당하게", "신나게", "멋지게", "져주며 살자"], p: ["연인·부부", "동창회·친구", "가족 모임"], t: ["웃기게", "감동적으로"] },
+  { w: "사이다", l: ["사랑하자", "이 순간을", "다 함께"], p: ["*"], t: ["짧고 굵게", "감동적으로"] },
+  { w: "지화자", l: ["지금부터", "화합해서", "자랑스럽게"], p: ["회사 회식", "송년·신년회", "MT·동아리"], t: ["파이팅 넘치게", "품격 있게"] },
+  { w: "고감사", l: ["고맙습니다", "감사합니다", "사랑합니다"], p: ["가족 모임", "회사 회식", "송년·신년회"], t: ["감동적으로", "짧고 굵게"] },
+  { w: "무조건", l: ["무엇이든", "조건 없이", "건배합시다"], p: ["동창회·친구", "MT·동아리", "회사 회식"], t: ["짧고 굵게", "웃기게"] },
+  { w: "마무리", l: ["마음먹은 것은", "무엇이든", "이루어진다"], p: ["송년·신년회", "회사 회식"], t: ["파이팅 넘치게", "품격 있게"] },
+  { w: "남행열차", l: ["남다른", "행복을", "열심히", "차지하자"], p: ["회사 회식", "MT·동아리", "동창회·친구"], t: ["웃기게", "파이팅 넘치게"] },
+  { w: "너나잘해", l: ["너와", "나 모두", "잘되는", "해를 위하여"], p: ["동창회·친구", "MT·동아리", "송년·신년회"], t: ["웃기게", "아재개그"] },
+  { w: "올보기", l: ["올해도", "보람차고", "기쁘게"], p: ["송년·신년회", "회사 회식", "가족 모임"], t: ["짧고 굵게", "품격 있게"] },
+  { w: "백두산", l: ["백 살까지", "두 발로", "산에 오르자"], p: ["가족 모임", "동창회·친구"], t: ["웃기게", "감동적으로"] },
+  { w: "단무지", l: ["단순하게", "무리하지 말고", "지금을 즐기자"], p: ["MT·동아리", "동창회·친구", "회사 회식"], t: ["웃기게", "아재개그"] },
+  { w: "모바일", l: ["모든 일이", "바라는 대로", "일어나길"], p: ["송년·신년회", "축하 자리", "거래처·접대"], t: ["품격 있게", "파이팅 넘치게"] },
+  { w: "아이유", l: ["아름다운", "이 순간이", "유지되길"], p: ["연인·부부", "동창회·친구", "MT·동아리"], t: ["아재개그", "감동적으로"] },
+  { w: "건배", l: ["건강하고", "배려하며"], p: ["*"], t: ["짧고 굵게", "품격 있게"] },
+  { w: "우아미", l: ["우리의", "아름다운", "미래를 위하여"], p: ["연인·부부", "가족 모임", "회사 회식"], t: ["감동적으로", "품격 있게"] },
+  { w: "행진", l: ["행복하게", "진하게 살자"], p: ["*"], t: ["짧고 굵게", "파이팅 넘치게"] },
+  { w: "미사일", l: ["미래를", "사랑하며", "일등하자"], p: ["회사 회식", "MT·동아리"], t: ["파이팅 넘치게", "아재개그"] },
+  { w: "주전자", l: ["주인답게", "전문가답게", "자신 있게"], p: ["회사 회식", "거래처·접대"], t: ["품격 있게", "파이팅 넘치게"] },
+  { w: "상한가", l: ["상상 이상으로", "한 해를", "가득 채우자"], p: ["송년·신년회", "거래처·접대", "회사 회식"], t: ["파이팅 넘치게", "아재개그"] },
+  { w: "동사무소", l: ["동기들아", "사랑한다", "무조건", "소중하다"], p: ["동창회·친구", "MT·동아리"], t: ["웃기게", "아재개그"] },
+  { w: "새출발", l: ["새해에는", "출세하고", "발전하자"], p: ["송년·신년회", "회사 회식", "축하 자리"], t: ["파이팅 넘치게", "짧고 굵게"] },
+  { w: "만사형통", l: ["만나서", "사랑하고", "형제처럼", "통하자"], p: ["동창회·친구", "거래처·접대", "회사 회식"], t: ["감동적으로", "품격 있게"] },
+  { w: "동반자", l: ["동고동락하며", "반갑게", "자주 보자"], p: ["거래처·접대", "동창회·친구", "연인·부부"], t: ["감동적으로", "품격 있게"] },
+  { w: "축배", l: ["축하합니다", "배로 행복하세요"], p: ["축하 자리", "가족 모임"], t: ["짧고 굵게", "감동적으로"] },
+  { w: "승진", l: ["승승장구", "진심으로 축하해"], p: ["축하 자리", "회사 회식"], t: ["짧고 굵게", "파이팅 넘치게"] },
+  { w: "백년해로", l: ["백 년 동안", "연인처럼", "해마다", "노력하자"], p: ["연인·부부", "축하 자리"], t: ["감동적으로", "품격 있게"] },
+  { w: "뚝배기", l: ["뚝심 있고", "배짱 있고", "기운차게"], p: ["회사 회식", "MT·동아리", "송년·신년회"], t: ["파이팅 넘치게", "웃기게"] },
+  { w: "여기저기", l: ["여러분의", "기쁨이", "저의", "기쁨"], p: ["회사 회식", "동창회·친구", "축하 자리", "가족 모임"], t: ["감동적으로", "품격 있게"] },
+  { w: "이기자", l: ["이런", "기회를", "자주 만들자"], p: ["*"], t: ["짧고 굵게", "웃기게"] },
+  { w: "비타민", l: ["비난 말고", "타협하며", "민주적으로"], p: ["회사 회식", "MT·동아리", "거래처·접대"], t: ["품격 있게", "아재개그"] },
+  { w: "한우갈비", l: ["한마음인", "우리는", "갈수록", "비상한다"], p: ["회사 회식", "MT·동아리", "송년·신년회"], t: ["파이팅 넘치게", "아재개그"] },
+  { w: "의자왕", l: ["의욕과", "자신감을 가지고", "왕창 성공하자"], p: ["회사 회식", "송년·신년회", "MT·동아리"], t: ["파이팅 넘치게", "아재개그"] },
+  { w: "막걸리", l: ["막힘없이", "걸림없이", "리드미컬하게 쭉"], p: ["동창회·친구", "MT·동아리", "회사 회식"], t: ["웃기게", "아재개그"] },
+  { w: "삼겹살", l: ["쌈박한 추억", "겹겹이 쌓으며", "살아봅시다"], p: ["회사 회식", "동창회·친구", "MT·동아리"], t: ["웃기게", "아재개그"] },
+].map(c => ({ kind: "nhaengsi", title: c.w, lines: c.l, lead: "제가 \"" + c.w + "\" 하면 다 같이", call: c.w + "!", p: c.p, t: c.t }));
+
+const $ = id => document.getElementById(id);
+
+function chips(el, name, items, checked) {
+  items.forEach((v, i) => {
+    const id = name + i;
+    const input = Object.assign(document.createElement("input"), { type: "radio", name, id, value: v, checked: v === checked });
+    const label = Object.assign(document.createElement("label"), { htmlFor: id, textContent: v });
+    el.append(input, label);
+  });
+}
+chips($("place"), "place", PLACES, null);
+chips($("tone"), "tone", TONES, null);
+const pick = name => document.querySelector(`input[name="${name}"]:checked`)?.value || "";
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function toText(r) {
+  const body = r.kind === "nhaengsi" ? r.lines.join("\n") : (r.speech || "");
+  return [r.intro, body, r.lead && r.call ? `(선창) ${r.lead} → (후창) ${r.call}` : r.call].filter(Boolean).join("\n");
+}
+
+function card(r, fresh) {
+  const c = el("article", "card" + (fresh ? " new" : ""));
+  const top = el("div", "card-top");
+  top.append(el("span", "card-title", r.title || "건배사"));
+  const copy = el("button", "", "복사");
+  copy.type = "button";
+  copy.onclick = async () => {
+    try { await navigator.clipboard.writeText(toText(r)); copy.textContent = "복사됨"; }
+    catch { getSelection().selectAllChildren(c); copy.textContent = "선택됨, 길게 눌러 복사"; }
+    setTimeout(() => copy.textContent = "복사", 1800);
+  };
+  top.append(copy);
+  c.append(top);
+  if (r.intro) c.append(el("p", "intro", r.intro));
+  if (r.kind === "nhaengsi" && Array.isArray(r.lines)) {
+    const dl = el("dl", "acro");
+    const heads = [...(r.title || "")];
+    r.lines.forEach((line, i) => {
+      const s = String(line);
+      const head = heads[i] || s[0] || "";
+      dl.append(el("dt", "", head), el("dd", "", s));
+    });
+    c.append(dl);
+  } else if (r.speech) {
+    c.append(el("p", "speech", r.speech));
+  }
+  if (r.call) {
+    const call = el("div", "call");
+    if (r.lead) { const a = el("span"); a.append(el("b", "", "선창"), r.lead); call.append(a); }
+    const b = el("span"); b.append(el("b", "", "후창"), r.call); call.append(b);
+    c.append(call);
+  }
+  return c;
+}
+
+function render(items, title, tag, isExample) {
+  $("resTitle").textContent = title;
+  $("resTag").textContent = tag;
+  $("resTag").hidden = isExample;
+  $("list").replaceChildren(...(items.length ? items.map(r => card(r, !isExample)) : [el("p", "empty", "조건에 맞는 단골 건배사가 없어요. 다른 느낌을 골라 보세요.")]));
+}
+
+// 이미 보여준 건 빼고 고른다. 어울리는 게 바닥나면 나머지 단골에서 채우고, 전부 돌면 처음부터.
+let seen = new Set();
+function classicsFor(place, tone) {
+  const score = c => (c.p.includes("*") || c.p.includes(place) ? 2 : 0) + (c.t.includes(tone) ? 1 : 0);
+  if (CLASSICS.every(c => seen.has(c))) seen = new Set();
+  const out = CLASSICS.filter(c => !seen.has(c)).sort((a, b) => score(b) - score(a) || Math.random() - .5).slice(0, 3);
+  out.forEach(c => seen.add(c));
+  return out;
+}
+function showClassics(note) {
+  const place = pick("place"), tone = pick("tone");
+  const label = [place, tone].filter(Boolean).join(" · ");
+  render(classicsFor(place, tone), label ? `${label} 단골 건배사` : "언제 써도 좋은 단골 건배사", "", true);
+  setStatus(note || "");
+}
+$("more").onclick = () => { aiShown = false; showClassics(); };
+function setStatus(msg, err) { $("status").textContent = msg; $("status").className = "status" + (err ? " err" : ""); }
+
+document.addEventListener("change", e => { if (e.target.name === "place" || e.target.name === "tone") { seen = new Set(); if (!aiShown) showClassics(); } });
+
+$("rush").onclick = () => {
+  const c = CLASSICS[Math.floor(Math.random() * CLASSICS.length)];
+  render([c], "바로 외치세요", "단골 건배사", false);
+  setStatus("");
+};
+
+let aiShown = false, ctl = null;
+
+// 잔 12종 (맥주·와인·위스키·보드카·럼·칵테일·샴페인·진·샷·데킬라·브랜디·압생트).
+// cup: 술이 담기는 안쪽 모양, lv: 술 높이(y), out: 받침·손잡이 등 선, under/over: 술 아래·위 장식
+const LIME = 'fill="var(--lime)" stroke="currentColor" stroke-width="1.5"';
+const ICE = 'fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"';
+const GLASSES = [
+  { cup: "M18 8H46L42 70H22Z", lv: 14, out: "M22 70L21 74H43L42 70" },
+  { cup: "M20 6H44C45 22 40 34 32 34C24 34 19 22 20 6Z", lv: 20, out: "M32 34V70M22 74Q32 68 42 74" },
+  { cup: "M14 28H50L48 64H16Z", lv: 40, out: "M16 64L15 72H49L48 64", under: `<rect x="20" y="42" width="12" height="12" rx="2" transform="rotate(-12 26 48)" ${ICE}/><rect x="33" y="44" width="11" height="11" rx="2" transform="rotate(10 38 50)" ${ICE}/>` },
+  { cup: "M16 22H48L46 64H18Z", lv: 32, out: "M18 64L17 72H47L46 64", under: `<rect x="22" y="38" width="11" height="11" rx="2" ${ICE}/><rect x="32" y="48" width="10" height="10" rx="2" ${ICE}/>`, over: `<path d="M30 30A10 10 0 0 0 49 24Z" ${LIME}/>` },
+  { cup: "M14 26H46L44 70H16Z", lv: 32, out: "M16 70L15 74H45L44 70M24 54L10 6", over: `<circle cx="46" cy="26" r="9" ${LIME}/>` },
+  { cup: "M8 12H56C54 24 44 28 38 30C35 31 34 34 33 38H31C30 34 29 31 26 30C20 28 10 24 8 12Z", lv: 17, out: "M32 38V70M20 74Q32 68 44 74", over: `<circle cx="54" cy="12" r="8" ${LIME}/>` },
+  { cup: "M26 4H38C38 26 36 36 32 38C28 36 26 26 26 4Z", lv: 14, out: "M32 38V72M22 76Q32 70 42 76" },
+  { cup: "M18 8H46L45 72H19Z", lv: 20, out: "M28 56L54 2", over: `<path d="M16 16c-6 4 4 8-2 13" fill="none" stroke="var(--lime)" stroke-width="3" stroke-linecap="round"/>` },
+  { cup: "M23 50H41L39 70H25Z", lv: 56, out: "M25 70L24 74H40L39 70" },
+  { cup: "M22 32H42L40 70H24Z", lv: 44, out: "M24 70L23 74H41L40 70", over: `<path d="M20 32Q31 16 46 26Z" ${LIME}/>` },
+  { cup: "M22 28C8 38 10 60 32 62C54 60 56 38 42 28Z", lv: 50, out: "M32 62V70M22 74Q32 68 42 74" },
+  { cup: "M10 10H54C52 26 42 34 32 34C22 34 12 26 10 10Z", lv: 16, out: "M32 34V68M20 72Q32 66 44 72", over: '<circle cx="32" cy="50" r="3" fill="none" stroke="currentColor" stroke-width="2"/>' },
+];
+const LIQUORS = ["--liq-red", "--liq-yellow", "--liq-green", "--liq-blue", "--liq-white"];
+const glassSvg = (g, color) => `<svg viewBox="0 0 64 80"><defs><clipPath id="cup"><path d="${g.cup}"/></clipPath></defs>
+  <g clip-path="url(#cup)"><rect x="0" y="${g.lv}" width="64" height="80" fill="var(${color})"/>${g.under || ""}
+  <path d="M0 ${g.lv}H64" stroke="currentColor" stroke-width="1.5" opacity=".4"/></g>
+  <path d="${g.cup}${g.out}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>${g.over || ""}</svg>`;
+
+let glassTimer = null, lastGlass = -1, lastColor = -1;
+const randOther = (n, prev) => { let i; do i = Math.floor(Math.random() * n); while (i === prev); return i; };
+function loading(on) {
+  clearInterval(glassTimer);
+  $("loader").hidden = !on;
+  if (!on) return;
+  const show = () => {
+    lastGlass = randOther(GLASSES.length, lastGlass);
+    lastColor = randOther(LIQUORS.length, lastColor);
+    $("loader").innerHTML = glassSvg(GLASSES[lastGlass], LIQUORS[lastColor]);
+  };
+  show();
+  glassTimer = setInterval(show, 500);
+}
+
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const kws = $("kw").value.split(",").map(s => s.trim()).filter(Boolean);
+  const acro = acroTarget($("acro").value.replace(/\s+/g, ""), kws);
+  const place = pick("place"), tone = pick("tone");
+  ctl?.abort();
+  ctl = new AbortController();
+  $("go").disabled = true;
+  $("go").textContent = "건배사 짓는 중…";
+  setStatus("잔 채우는 동안 만들고 있어요. 보통 10~30초 걸려요.");
+  loading(true);
+  try {
+    const res = await fetch("api/toast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ acro: $("acro").value, kws, place, tone, ctx: $("ctx").value.trim() }),
+      signal: ctl.signal,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "");
+    const items = Array.isArray(data.items) ? data.items : [];
+    const poems = items.filter(r => r.kind === "nhaengsi");
+    if (!items.length) throw new Error("");
+    aiShown = true;
+    const label = [acro && `"${acro}" n행시`, kws.length && kws.join("·"), place, tone].filter(Boolean).join(" · ");
+    render(items, label, "맞춤 건배사", false);
+    setStatus(poems.length
+      ? "마음에 안 들면 한 번 더 누르면 새로 만들어요."
+      : "글자가 딱 맞는 n행시가 안 나와서 멘트만 보여드려요. 한 번 더 눌러 주세요.");
+  } catch (err) {
+    if (err?.name === "AbortError") return;
+    setStatus(err.message || "잠깐 연결이 끊겼어요. 다시 눌러 주세요.", true);
+  } finally {
+    loading(false);
+    $("go").disabled = false;
+    $("go").textContent = "맞춤 건배사 만들기";
+  }
+});
+
+showClassics();
+</script>
+</body>
+</html>
